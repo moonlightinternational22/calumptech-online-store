@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calumptech | Premium Tech Store</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sage-primary: #8A9A5B;
+            --sage-dark: #4a5d4d;
+            --sage-light: #dce2d1;
+            --text-main: #2c362e;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--white); color: var(--text-main); overflow-x: hidden; }
+
+        /* --- UI UTILITIES --- */
+        .container { max-width: 1200px; margin: auto; padding: 0 20px; }
+        .hidden { display: none !important; }
+        .btn { 
+            display: inline-block; 
+            background: var(--sage-primary); 
+            color: #fff; 
+            padding: 14px 30px; 
+            border-radius: 50px; 
+            text-decoration: none; 
+            font-weight: 600; 
+            border: none; 
+            cursor: pointer; 
+            transition: 0.3s;
+            margin-top: 40px;
+        }
+        .btn:hover { background: var(--sage-dark); transform: translateY(-2px); }
+
+        /* --- MODAL STYLES --- */
+        @keyframes modalBounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none; justify-content: center; align-items: center;
+            z-index: 5000;
+            backdrop-filter: blur(2px);
+        }
+        .modal-content {
+            background: white; padding: 40px; border-radius: 20px;
+            width: 90%; max-width: 400px; position: relative; text-align: center;
+            animation: modalBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 25px; cursor: pointer; }
+
+        /* --- NAVIGATION --- */
+        header { background: var(--white); padding: 25px 0; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .navbar { display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 24px; font-weight: 700; color: var(--sage-dark); cursor: pointer; flex: 1; text-decoration: none; }
+        .logo span { color: var(--sage-primary); }
+        
+        .nav-right-group { display: flex; align-items: center; justify-content: flex-end; flex: 2; }
+        nav ul { display: flex; list-style: none; align-items: center; margin-right: 30px; }
+        nav ul li { margin-left: 30px; cursor: pointer; font-weight: 500; transition: 0.3s; font-size: 15px; }
+        nav ul li:hover { color: var(--sage-primary); }
+        
+        .icon-btn { background: none; border: none; cursor: pointer; font-size: 1.4rem; position: relative; display: flex; align-items: center; }
+        .cart-count { position: absolute; top: -5px; right: -10px; background: #e74c3c; color: white; font-size: 11px; padding: 2px 6px; border-radius: 50%; }
+
+        /* --- FLYING ANIMATION STYLE --- */
+        .cart-flyer {
+            position: fixed;
+            z-index: 9999;
+            width: 25px;
+            height: 25px;
+            background: var(--sage-primary);
+            border-radius: 50%;
+            pointer-events: none;
+            transition: all 0.7s cubic-bezier(0.42, 0, 0.58, 1);
+        }
+
+        /* --- SAGE TOP-MIDDLE NOTIFICATION --- */
+        #toast {
+            visibility: hidden;
+            min-width: 350px;
+            background-color: var(--sage-primary);
+            color: #fff;
+            text-align: center;
+            border-radius: 12px;
+            padding: 20px;
+            position: fixed;
+            z-index: 5000;
+            left: 50%;
+            top: -100px;
+            transform: translateX(-50%);
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: top 0.5s ease-in-out, visibility 0.5s;
+        }
+        #toast.show {
+            visibility: visible;
+            top: 30px;
+        }
+
+        /* --- SEARCH BAR --- */
+        .search-container { padding: 15px 0; background: var(--sage-light); text-align: center; }
+        .search-container input { width: 50%; padding: 12px 25px; border-radius: 25px; border: none; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        /* --- PRODUCT GRID --- */
+        #shop-page { padding: 60px 0; }
+        .categories { display: flex; justify-content: center; gap: 12px; margin-bottom: 50px; flex-wrap: wrap; }
+        .cat-btn { padding: 10px 22px; border-radius: 25px; border: 1.5px solid var(--sage-primary); background: transparent; cursor: pointer; transition: 0.3s; font-weight: 500; }
+        .cat-btn.active, .cat-btn:hover { background: var(--sage-primary); color: white; }
+        
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 35px; }
+        .product-card { background: white; padding: 25px; border-radius: 20px; text-align: center; transition: 0.3s; border: 1px solid #f0f0f0; display: flex; flex-direction: column; }
+        .product-card img { width: 100%; height: 220px; object-fit: contain; margin-bottom: 20px; }
+        .brand-label { font-size: 12px; text-transform: uppercase; color: var(--sage-primary); font-weight: 700; margin-bottom: 5px; }
+        .price { color: #333; font-weight: 700; margin-bottom: 20px; font-size: 18px; }
+
+        /* --- FOOTER --- */
+        footer { background: #000; color: #8a8a8a; padding: 80px 0 30px; font-size: 14px; }
+        footer p { color: #8a8a8a; line-height: 1.8; }
+        footer h3 { color: #fff; margin-bottom: 25px; font-weight: 600; }
+        .footer-row { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 40px; }
+        .footer-col-1 { flex: 1.2; min-width: 250px; }
+        .footer-col-2 { flex: 1.8; text-align: center; min-width: 300px; padding: 0 20px; }
+        .footer-col-3, .footer-col-4 { flex: 0.8; min-width: 150px; }
+        .footer-col-2 .logo { color: #fff; display: block; margin-bottom: 20px; font-size: 28px; text-decoration: none; font-weight: 700; }
+        .app-logo { margin-top: 25px; display: flex; gap: 15px; }
+        .footer-col-2 .app-logo { justify-content: center; }
+        .app-logo img { width: 140px; cursor: pointer; transition: 0.3s; }
+        footer ul { list-style-type: none; }
+        footer ul li { margin-bottom: 12px; }
+        footer ul li a { color: #8a8a8a; text-decoration: none; transition: 0.3s; }
+        footer ul li a:hover { color: var(--sage-primary); }
+        .copyright { text-align: center; padding-top: 25px; margin-top: 50px; border-top: 1px solid #333; }
+
+        /* --- CART SIDEBAR --- */
+        #cart-sidebar { position: fixed; right: -400px; top: 0; width: 380px; height: 100%; background: white; z-index: 3000; box-shadow: -10px 0 30px rgba(0,0,0,0.1); transition: 0.4s; padding: 40px 30px; display: flex; flex-direction: column; }
+        #cart-sidebar.open { right: 0; }
+        .cart-item { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .cart-item img { width: 60px; height: 60px; object-fit: contain; }
+
+        /* --- NEW MOBILE OPTIMIZATIONS --- */
+        @media (max-width: 768px) {
+            nav ul { display: none; } /* Standard behavior for mobile without a burger menu */
+            .search-container input { width: 90%; }
+            .product-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+            .product-card { padding: 15px; }
+            .product-card img { height: 140px; }
+            .product-card h3 { font-size: 14px; }
+            .price { font-size: 14px; }
+            .btn { padding: 10px 20px; font-size: 14px; }
+            h1 { font-size: 32px !important; text-align: center; }
+            #home-page .container > div { flex-direction: column-reverse; text-align: center; }
+            #home-page .container p { font-size: 14px; }
+            #cart-sidebar { width: 100%; max-width: 100%; right: -100%; }
+            #toast { min-width: 90%; font-size: 13px; }
+            .footer-row { text-align: center; justify-content: center; }
+            .footer-col-2 .app-logo { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container navbar">
+            <a href="#" class="logo" onclick="showPage('home')">CALUMP<span>TECH</span></a>
+            <div class="nav-right-group">
+                <nav>
+                    <ul>
+                        <li onclick="showPage('home')">Home</li>
+                        <li onclick="showPage('shop')">Shop</li>
+                        <li onclick="openModal('contact')">Contact</li>
+                        <li onclick="openModal('account')">Account</li>
+                    </ul>
+                </nav>
+                <button id="cart-nav-btn" class="icon-btn" onclick="toggleCart()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    <span class="cart-count" id="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="contact-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('contact')">&times;</span>
+            <h2>Contact Us</h2>
+            <p style="margin-top:20px;">Email: support@calumptech.ph</p>
+            <p>Phone: +63 912 345 6789</p>
+            <button class="btn" style="margin-top:20px;" onclick="closeModal('contact')">Close</button>
+        </div>
+    </div>
+
+    <div id="account-modal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('account')">&times;</span>
+            <h2>Account Access</h2>
+            <input type="email" placeholder="Email" style="width:100%; padding:10px; margin-top:20px; border-radius:5px; border:1px solid #ddd;">
+            <input type="password" placeholder="Password" style="width:100%; padding:10px; margin-top:10px; border-radius:5px; border:1px solid #ddd;">
+            <button class="btn" style="width:100%;" onclick="closeModal('account')">Login</button>
+        </div>
+    </div>
+
+    <div id="toast">Successfully purchased, thank you for choosing calumptech!!</div>
+
+    <div id="search-section" class="search-container hidden">
+        <input type="text" id="productSearch" placeholder="Search brands or products..." onkeyup="searchProducts()">
+    </div>
+
+    <main id="home-page">
+        <div class="container" style="min-height: 80vh; display: flex; align-items: center;">
+            <div style="display: flex; align-items: center; flex-wrap: wrap; width: 100%;">
+                <div style="flex: 1; min-width: 300px;">
+                    <h1 style="font-size: 55px; line-height: 1.1; margin-bottom: 25px; color: var(--sage-dark);">Tech for you <br>Bold and new.</h1>
+                    <p style="font-size: 18px; color: #555;">At CalumpTech, we believe your gear should be as bold as your ambitions. We’re not just an electronics store; we’re your gateway to a more stylish and efficient digital lifestyle, offering a handpicked selection of the latest smartphones, high-performance laptops, and must-have PC accessories. Our mission is to set the pace of innovation, ensuring that every gadget you own from the device in your pocket to the hardware on your desk is a statement of premium quality and cutting-edge design. Experience the future of tech with a brand that values excellence as much as you do, and elevate your everyday space with curated tools built for the bold.</p>
+                    <button class="btn" onclick="showPage('shop')">Shop Now &nbsp; &rarr;</button>
+                </div>
+                <div style="flex: 1; text-align: right;">
+                    <img src="https://img.freepik.com/premium-photo/gamer-workspace_127657-18663.jpg?w=740" style="width: 100%; max-width: 500px; border-radius: 20px;" alt="Hero Image">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <main id="shop-page" class="hidden">
+        <div class="container">
+            <div class="categories">
+                <button class="cat-btn active" onclick="filterCategory('All', this)">All Brands</button>
+                <button class="cat-btn" onclick="filterCategory('Smart Phone', this)">Smart Phone</button>
+                <button class="cat-btn" onclick="filterCategory('Laptop', this)">Laptop</button>
+                <button class="cat-btn" onclick="filterCategory('PC', this)">PC</button>
+                <button class="cat-btn" onclick="filterCategory('Smart Watch', this)">Smart Watch</button>
+                <button class="cat-btn" onclick="filterCategory('Smart TV', this)">Smart TV</button>
+                <button class="cat-btn" onclick="filterCategory('Accessories', this)">Accessories</button>
+            </div>
+            <div class="product-grid" id="product-display"></div>
+        </div>
+    </main>
+
+    <footer id="home-footer">
+        <div class="container">
+            <div class="footer-row">
+                <div class="footer-col-1">
+                    <h3>Download Our App</h3>
+                    <p>Get our mobile app for exclusive deals and faster shopping on Android and iOS.</p>
+                    <div class="app-logo">
+                        <a href="https://play.google.com" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Play Store"></a>
+                        <a href="https://apple.com" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" alt="App Store"></a>
+                    </div>
+                </div>
+                <div class="footer-col-2">
+                    <a href="#" class="logo">CALUMP<span>TECH</span></a>
+                    <p>Our Purpose Is To Sustainably Make the Pleasure and Benefits of Technology Accessible to the Many.</p>
+                </div>
+                <div class="footer-col-3">
+                    <h3>Useful Links</h3>
+                    <ul>
+                        <li><a href="#">Coupons</a></li>
+                        <li><a href="#">Blog Post</a></li>
+                        <li><a href="#">Return Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col-4">
+                    <h3>Follow Us</h3>
+                    <ul>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">YouTube</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p class="copyright">Copyright 2026 - Calumptech</p>
+        </div>
+    </footer>
+
+    <div id="cart-sidebar">
+        <span onclick="toggleCart()" style="cursor: pointer; font-size: 30px; position: absolute; top: 20px; right: 30px;">&times;</span>
+        <h2 style="margin-bottom: 30px;">Your Shopping Bag</h2>
+        <div id="cart-items-list" style="flex: 1; overflow-y: auto;"></div>
+        <div id="cart-total" style="font-weight: 700; font-size: 20px; padding: 25px 0; border-top: 2px solid #f0f0f0;">Total: ₱0</div>
+        <button class="btn" style="width: 100%; margin-top: 0;" onclick="buyNow()">Checkout Now</button>
+    </div>
+
+    <script>
+        const products = [
+            { id: 1, brand: "Apple", name: "iPhone 15 Pro Max", category: "Smart Phone", price: 70990, img: "https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/iphone-15-pro-max.png" },
+            { id: 2, brand: "Samsung", name: "Galaxy S24 Ultra", category: "Smart Phone", price: 84990, img: "https://m-cdn.phonearena.com/images/phones/84388-940/Samsung-Galaxy-S24-Ultra.jpg?w=10" },
+            { id: 3, brand: "Google", name: "Pixel 8 Pro", category: "Smart Phone", price: 55000, img: "https://m.media-amazon.com/images/I/71h9zq4viSL._AC_SL1000__.jpg" },
+            { id: 4, brand: "Xiaomi", name: "Xiaomi 14 Ultra", category: "Smart Phone", price: 65990, img: "https://www.speed.ph/wp-content/uploads/Xiaomi-14-Ultra_c.jpg" },
+            { id: 5, brand: "OnePlus", name: "OnePlus 12", category: "Smart Phone", price: 48000, img: "https://www.vopmart.com/media/wysiwyg/Oneplus/OnePlus-12/oneplus-12-review-01.jpg" },
+            { id: 6, brand: "Apple", name: "iPhone 14", category: "Smart Phone", price: 45990, img: "https://s13emagst.akamaized.net/products/48592/48591193/images/res_467c241e448b89e2882bb298bcdac506.jpg" },
+            { id: 7, brand: "Samsung", name: "Galaxy Z Fold 5", category: "Smart Phone", price: 98990, img: "https://storage.googleapis.com/landtop_prod/productimage/1153/image/23662af721eb1f7959aab1f755cdd332.png" },
+            { id: 8, brand: "Vivo", name: "Vivo X100 Pro", category: "Smart Phone", price: 52000, img: "https://unbox.ph/wp-content/uploads/2023/11/vivo-X100_4.png" },
+            { id: 9, brand: "Oppo", name: "Find X7 Ultra", category: "Smart Phone", price: 61000, img: "https://ph-test-11.slatic.net/p/c208611e5ec2dfeaca33a417febc5376.jpg" },
+            { id: 10, brand: "Redmi", name: "Redmi Note 13 Pro", category: "Smart Phone", price: 35000, img: "https://ansons.ph/wp-content/uploads/2024/09/03_REDMI-NOTE-13-Pro_Midnight-Black.png" },
+            { id: 11, brand: "Apple", name: "MacBook Pro M3", category: "Laptop", price: 99990, img: "https://www.computermiete.de/wp-content/uploads/2024/06/computermiete-apple-macbook-pro-mieten-16-zoll-m3-pro-4.png" },
+            { id: 12, brand: "Dell", name: "XPS 15", category: "Laptop", price: 115000, img: "https://images.jdmagicbox.com/quickquotes/images_main/dell-xps-15-core-i7-8th-gen-16-gb-512-gb-ssd-windows-10-home-4-gb-graphics-9570-laptop-15-6-silver-1-8-kg-with-ms-office-116851607-7u0il.jpg" },
+            { id: 13, brand: "Asus", name: "ROG Zephyrus G14", category: "Laptop", price: 89000, img: "https://www.asus.com/media/global/products/87321234567890123456789012345678.jpg" },
+            { id: 14, brand: "HP", name: "Spectre x360", category: "Laptop", price: 78000, img: "https://img-cdn.tnwcdn.com/image?fit=1280%2C720&url=https%3A%2F%2Fcdn0.tnwcdn.com%2Fwp-content%2Fblogs.dir%2F1%2Ffiles%2F2021%2F08%2FHP-Spectre-x360-14-1-of-7.jpg&signature=b273734ba382a58d403431a960fd1708" },
+            { id: 15, brand: "Lenovo", name: "ThinkPad X1 Carbon", category: "Laptop", price: 92000, img: "https://sm.pcmag.com/pcmag_au/review/l/lenovo-thi/lenovo-thinkpad-x1-carbon-gen-12_g1tq.jpg" },
+            { id: 16, brand: "Alienware", name: "Aurora R16 Desktop", category: "PC", price: 145000, img: "https://i.dell.com/is/image/DellContent/content/dam/ss2/product-images/dell-client-products/desktops/alienware-desktops/alienware-aurora-r16/pdp/alienware-aurora-r16-pdp-hero.psd?fmt=jpg&wid=570&hei=400" },
+            { id: 17, brand: "Apple", name: "Mac Studio M2", category: "PC", price: 120000, img: "https://cdn.arstechnica.net/wp-content/uploads/2023/06/IMG_1183.jpeg" },
+            { id: 18, brand: "HP", name: "Omen 45L", category: "PC", price: 132000, img: "https://www.hp.com/content/dam/sites/omen/worldwide/desktops/omen-40l-amd/Hero_Banner_Image-mb_45l-v2.png" },
+            { id: 19, brand: "Apple", name: "Apple Watch Ultra 2", category: "Smart Watch", price: 54990, img: "https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/111832-watch-ultra-2.png" },
+            { id: 20, brand: "Samsung", name: "Galaxy Watch 6 Classic", category: "Smart Watch", price: 22000, img: "https://d1rlzxa98cyc61.cloudfront.net/catalog/product/cache/1801c418208f9607a371e61f8d9184d9/1/8/189131_2023_1.jpg" },
+            { id: 21, brand: "Garmin", name: "Fenix 7 Pro", category: "Smart Watch", price: 45000, img: "https://ph.garmin.com/m/ph/g/products/fenix-7-pro-sapphire-carbongray-cf-lg.jpg" },
+            { id: 22, brand: "Google", name: "Pixel Watch 2", category: "Smart Watch", price: 19500, img: "https://m-cdn.phonearena.com/images/review/5987-wide-two_1200/Google-Pixel-Watch-2-Review-Improved-but-still-far-from-perfect.jpg" },
+            { id: 23, brand: "Huawei", name: "Watch GT 4", category: "Smart Watch", price: 12990, img: "https://electroworld.abenson.com/media/catalog/product/1/8/189702_2023_1.jpg" },
+            { id: 24, brand: "Sony", name: "Bravia XR A95L", category: "Smart TV", price: 159990, img: "https://i.rtings.com/assets/products/s9nyu6pB/sony-a95l-oled/design-medium.jpg?format=auto" },
+            { id: 25, brand: "LG", name: "OLED G3 Series", category: "Smart TV", price: 135000, img: "https://i.rtings.com/assets/products/bQ4hyy83/lg-g3-oled/design-medium.jpg?format=auto" },
+            { id: 26, brand: "Samsung", name: "Neo QLED 8K", category: "Smart TV", price: 189000, img: "https://cdn.mos.cms.futurecdn.net/bSJvf5UT77BQdsyLGRrvtj.jpg" },
+            { id: 27, brand: "Sony", name: "WH-1000XM5 Headphones", category: "Accessories", price: 20990, img: "https://d1rlzxa98cyc61.cloudfront.net/catalog/product/1/8/183251_2022_1.jpg?auto=webp&format=pjpg&width=640" },
+            { id: 28, brand: "Apple", name: "AirPods Pro 2", category: "Accessories", price: 14990, img: "https://sm.pcmag.com/pcmag_me/review/a/apple-airp/apple-airpods-pro-2_6x5k.jpg" },
+            { id: 29, brand: "Logitech", name: "MX Master 3S", category: "Accessories", price: 6590, img: "https://ecommerce.datablitz.com.ph/cdn/shop/files/gsd56g4sd_1024x.jpg?v=1761456818" },
+            { id: 30, brand: "Razer", name: "BlackWidow V4", category: "Accessories", price: 11000, img: "https://m.media-amazon.com/images/I/81Wsrt05uLL._AC_SL1500_.jpg" },
+            { id: 31, brand: "Samsung", name: "T7 Shield 2TB SSD", category: "Accessories", price: 9500, img: "https://elnstore.com/cdn/shop/products/1666885837_IMG_1733492_d1a71829-e619-4fdc-a4dc-20b0835e9538.jpg?v=1681444839" }
+        ];
+
+        let cart = [];
+
+        function openModal(id) { document.getElementById(id + '-modal').style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id + '-modal').style.display = 'none'; }
+
+        function searchProducts() {
+            const query = document.getElementById('productSearch').value.toLowerCase();
+            const filtered = products.filter(p => p.name.toLowerCase().includes(query) || p.brand.toLowerCase().includes(query));
+            renderProducts(filtered);
+        }
+
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filtered = cat === 'All' ? products : products.filter(p => p.category === cat);
+            renderProducts(filtered);
+        }
+
+        function showPage(page) {
+            document.getElementById('home-page').classList.toggle('hidden', page !== 'home');
+            document.getElementById('shop-page').classList.toggle('hidden', page !== 'shop');
+            document.getElementById('search-section').classList.toggle('hidden', page !== 'shop');
+            document.getElementById('home-footer').classList.toggle('hidden', page !== 'home');
+            if(page === 'shop') renderProducts(products);
+        }
+
+        function renderProducts(items) {
+            const display = document.getElementById('product-display');
+            display.innerHTML = items.map(p => `
+                <div class="product-card">
+                    <span class="brand-label">${p.brand}</span>
+                    <img src="${p.img}" alt="${p.name}">
+                    <h3>${p.name}</h3>
+                    <span class="price">₱${p.price.toLocaleString()}</span>
+                    <button class="btn" style="margin-top: 10px; padding: 10px 20px;" onclick="addToCart(event, ${p.id})">Add to Cart</button>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(event, id) {
+            const product = products.find(p => p.id === id);
+            cart.push(product);
+            const btn = event.currentTarget;
+            const cartBtn = document.getElementById('cart-nav-btn');
+            const flyer = document.createElement('div');
+            flyer.className = 'cart-flyer';
+            const btnRect = btn.getBoundingClientRect();
+            const cartRect = cartBtn.getBoundingClientRect();
+            flyer.style.left = `${btnRect.left + (btnRect.width / 2) - 12}px`;
+            flyer.style.top = `${btnRect.top}px`;
+            document.body.appendChild(flyer);
+            setTimeout(() => {
+                flyer.style.left = `${cartRect.left + 10}px`;
+                flyer.style.top = `${cartRect.top + 10}px`;
+                flyer.style.width = '10px'; flyer.style.height = '10px'; flyer.style.opacity = '0.5';
+            }, 50);
+            setTimeout(() => { flyer.remove(); updateCartUI(); }, 750);
+        }
+
+        function updateCartUI() {
+            document.getElementById('cart-count').innerText = cart.length;
+            const cartList = document.getElementById('cart-items-list');
+            cartList.innerHTML = cart.map((item) => `
+                <div class="cart-item">
+                    <img src="${item.img}">
+                    <div><p>${item.name}</p><p>₱${item.price.toLocaleString()}</p></div>
+                </div>
+            `).join('');
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            document.getElementById('cart-total').innerText = `Total: ₱${total.toLocaleString()}`;
+        }
+
+        function toggleCart() {
+            document.getElementById('cart-sidebar').classList.toggle('open');
+        }
+
+        function buyNow() {
+            if(cart.length === 0) return;
+            const toast = document.getElementById("toast");
+            toast.classList.add("show");
+            setTimeout(() => { toast.classList.remove("show"); }, 3000);
+            cart = [];
+            updateCartUI();
+            toggleCart();
+        }
+    </script>
+</body>
+</html>
